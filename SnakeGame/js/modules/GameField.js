@@ -13,6 +13,8 @@ export default class GameField {
 
     // receives game objects, clears canvas and draws them
     draw(gameObjects) {
+        this.ctx.clearRect(0, 0, Helper.FieldSize.WIDTH, Helper.FieldSize.HEIGHT);
+
         for(let i = 0; i<gameObjects.length; i++){
             gameObjects[i].draw(this.ctx)
         }

@@ -79,13 +79,26 @@ export default class Snake extends GameObject {
 
     //This method can be used with any user interface to change the snake's direction 
     //(may be it could be made public so the snake could be controlled from outside the engine)
-    changeDirection() {
-
+    changeDirection(direction) {
+        if(Object.values(Helper.Directions).includes(direction)){
+            this.direction = direction;
+        }
     }
 
     //This method describes how the snake manages collisions 
-    onCollision() {
+    onCollision(collisionObejct) {
         // if the collision object is food it increases its foodEaten and totalFood fields
+        if(collisionObejct.canBeEaten){
+            this.foodEaten++;
+            this.totalFood++;
+        }else{
+            if(this.lives === 0){
+                Engine.endGame();
+            }else{
+                this.lives--;
+                this.reset();
+            }
+        }
         // if the collision object is not food, 
         // it checks number of lives and if it is equal to 0 - dies, 
         //if not - decreases number of lives and resets it self
@@ -97,34 +110,89 @@ export default class Snake extends GameObject {
     // on the next update they will have different positions and the snake will be longer
     grow() {
         // Create new position
+        var position = {
+            X: this.bodyArray[this.length -1].position.X,
+            Y: this.bodyArray[this.length -1].position.Y,
+        };
+
         // Create new body part
+        var bodyPart = new SnakeBody(position.X,position.Y);
+
         // Push body part to bodyArray and position to position stack
+        this.bodyArray.push(bodyPart);
+        this.positionStack.push(position);
+
         // increase length
+        this.length++;
     }
 
     //This method is called when the snake dies, but have more lives. 
     //It wipes the snake and positions it in the left part of the field and sets direction to right
     reset() {
         // Set direction
+        this.direction = Helper.Directions.RIGHT;
+
         // Set snake head position (x is calculated, y is random)
+        var x = (this.length + 2) * this.size.WIDTH;
+        var y = Helper.getRandomPositionY(0, Helper.FieldSize.HEIGHT - this.size.HEIGHT);
+        this.position.X = x;
+        this.position.Y = y;
+
         // Set all body parts positions according to head
-        // Update position stack
+        for(let i = 0; i<this.length;i++){
+            this.bodyArray[i].position.Y = y;
+            this.bodyArray[i].position.X = x - ((i+1)*this.size.WIDTH);
+            this.positionStack[i] = this.bodyArray[i].position;
+        }
+        
     }
 
     //This method draws the snake, including all it's body parts and some statistics
-    draw() {
+    draw(ctx) {
         // Draw the head
+        ctx.fillStyle = this.color;
+        ctx.moveTo(this.position.X, this.position.Y);
+        if (this.icon) {
+            ctx.drawImage(this.icon, this.position.X, this.position.Y);
+        } else {
+            ctx.fillRect(this.position.X, this.position.Y, this.size.WIDTH, this.size.HEIGHT);
+        }
+
+        // super.draw(ctx);
+
         // Draw all body parts
+        for(let i = 0; i<this.length;i++){
+            this.bodyArray[i].draw(ctx);
+        }
+
         // Output number of lives and score
+        let live = document.getElementById('lives');
+        live.innerText = this.lives;
+
+        let points = document.getElementById('points');
+        points.innerText = this.totalFood;
+
     }
     
     //This method returns true if the snake collides with itself
-    hasBittenHerSelf() {
-        
+    hasBittenItSelf() {
+        let result = false;
+
+        for(let i = 0; i<this.length; i++){
+            if(this.position.X === this.bodyArray[i].position.X
+                && this.position.Y === this.bodyArray[i].position.Y){
+                result = true;
+                break;
+            }
+        }
+        return result;
     }
 
     //This method returns true if the snake leaves the game field
     isOutOfGameField() {
-        
+        return this.position.X < 0 || 
+        this.position.X > Helper.FieldSize.WIDTH || 
+        this.position.Y < 0 || 
+        this.position.Y > Helper.FieldSize.HEIGHT;
     }
 }
