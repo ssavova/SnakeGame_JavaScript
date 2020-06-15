@@ -32,7 +32,7 @@ var snakeLength = parseInt(document.getElementById("snakeLength").value),
         snakeLength = 3;
     }
 
-    if (numberOfStones <= 0) {
+    if (numberOfStones < 0) {
         numberOfStones = 10;
     }
 
@@ -40,41 +40,39 @@ var snakeLength = parseInt(document.getElementById("snakeLength").value),
         numberOfFood = 5;
     }
 
-    
     // create new snake
-    let x = (snakeLength + 1) * Helper.ObjectSize.WIDTH;
-    let y = Helper.getRandomPositionY(0, Helper.FieldSize.HEIGHT - Helper.ObjectSize.WIDTH);
-    snake = new Snake(x,y, snakeLength -1, Helper.Directions.RIGHT);
-
+    var x = (snakeLength + 1) * Helper.ObjectSize.WIDTH;
+    var y = Helper.getRandomPositionY(0, Helper.FieldSize.HEIGHT - Helper.ObjectSize.WIDTH);
+    snake = new Snake(x, y, snakeLength - 1, Helper.Directions.RIGHT);
     // create body parts and push them to bodyArray
-    for(i=1; i<snakeLength;i++){
+    for(i=1;i<snakeLength;i++){
         var position = {
-            X : x - (i * Helper.ObjectSize.WIDTH),
-            Y : y
+            X: x - (i * Helper.ObjectSize.WIDTH),
+            Y: y
         };
-        let part = new SnakeBody(position.X, position.Y);
+
+        var part = new SnakeBody(position.X, position.Y);
         snake.bodyArray.unshift(part);
         snake.positionStack.unshift(position);
     }
     // push positions into position stack
     // add snake to gameObjects
     gameObjects.push(snake);
-
     //create stones and push them into gameObjects
-    for(i = 0; i<numberOfStones;i++){
-        stone = new Stone(Helper.getRandomPositionX(0,Helper.FieldSize.WIDTH - Helper.ObjectSize.WIDTH),
-        Helper.getRandomPositionY(0,Helper.FieldSize.HEIGHT-Helper.ObjectSize.HEIGHT))
-
+    for (i = 0; i < numberOfStones; i++) {
+        stone = new Stone(Helper.getRandomPositionX(0, Helper.FieldSize.WIDTH - Helper.ObjectSize.WIDTH), 
+            Helper.getRandomPositionY(0, Helper.FieldSize.HEIGHT - Helper.ObjectSize.HEIGHT));
+        
         gameObjects.push(stone);
     }
 
     //create food and push it into gameObjects
-    for(i = 0; i<numberOfFood;i++){
-        food = new Food(Helper.getRandomPositionX(0,Helper.FieldSize.WIDTH - Helper.ObjectSize.WIDTH), Helper.getRandomPositionY(0,Helper.FieldSize.HEIGHT-Helper.ObjectSize.HEIGHT))
-
+    for (i = 0; i < numberOfFood; i++) {
+        food = new Food(Helper.getRandomPositionX(0, Helper.FieldSize.WIDTH - Helper.ObjectSize.WIDTH), 
+            Helper.getRandomPositionY(0, Helper.FieldSize.HEIGHT - Helper.ObjectSize.HEIGHT));
+        
         gameObjects.push(food);
     }
-
     // attach event to the body element, listen to "keydown" event and call the getKey event handler
     document.addEventListener("keydown", getKey, false);
 
@@ -108,33 +106,41 @@ function afterEndGameEvents() {
 // This method is called each gameSpeed milliseconds to update the states of all game objects
 function update() {
     // call update methods of all game objects
-    for(let i = 0 ;i<gameObjects.length; i++){
+    // call collisionDetect to handle collisions, than calls update methods of all game objects to update their states
+    // redraws game field
+    var i = 0;
+
+    // calls update methods of all game objects
+    for (i = 0; i < gameObjects.length; i++) {
         gameObjects[i].update();
     }
-    // call collisionDetect to handle collisions, than calls update methods of all game objects to update their states
+    // calls collisionDetect to handle collisions, than calls update methods of all game objects to update their states
     collisionDetect();
-
     // redraws game field
     gameField.draw(gameObjects);
 }
 
 // This method handles collisions
 function collisionDetect() {
-    if(snake.isOutOfGameField()){
+    var i = 0;
+
+    //checks if snake has left the game field and if so, calls snakes onCollision method to handle it
+    if (snake.isOutOfGameField()) {
         snake.onCollision(snake);
     }
 
-    if(snake.hasBittenItSelf()){
+    //checks if snake has bitten itself and if so, calls it's onCollision method to handle it
+    if (snake.hasBittenHerSelf()) {
         snake.onCollision(snake);
     }
 
-    for(let i = 0; i<gameObjects.length; i++){
-        if(collide(snake,gameObjects[i])){
+    //checks for collisions with other objects and if so calls their onCollision methods to handle them
+    for (i = 1; i < gameObjects.length; i++) {
+        if (collide(snake, gameObjects[i])) {
             snake.onCollision(gameObjects[i]);
             gameObjects[i].onCollision();
         }
     }
-
     //checks if snake has left the game field and if so, calls snakes onCollision method to handle it
 
     //checks if snake has bitten itself and if so, calls it's onCollision method to handle it
@@ -147,9 +153,7 @@ function collide(snakeObj, obj) {
     var result = false;
 
     // If top left corner and bottom right corner of two objects are equal, there is a collision
-    if (snakeObj.position.X === obj.position.X && snakeObj.position.Y === obj.position.Y &&
-        snakeObj.position.X + Helper.ObjectSize.WIDTH === obj.position.X + Helper.ObjectSize.WIDTH &&
-        snakeObj.position.Y + Helper.ObjectSize.HEIGHT === obj.position.Y + Helper.ObjectSize.HEIGHT) {
+    if (snakeObj.position.X === obj.position.X && snakeObj.position.Y === obj.position.Y ) {
         result = true;
     }
 
@@ -181,8 +185,8 @@ function getKey(evt) {
             break;
         //Letter "q" pressed, brings up confirm dialog, ends the game if OK pressed
         case 81:
-            evt.preventDefault();
-            if(confirm('Are you sure?')){
+            evt.preventDeafault();
+            if (confirm('Are you sure?')) {
                 endGame();
             }
             break;

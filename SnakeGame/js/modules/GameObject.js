@@ -11,7 +11,7 @@ export default class GameObject {
             Y: positionY
         };
 
-        this.icon = icon; 
+        this.icon = icon;
         this.isDestroyed = false;
         this.canBeEaten = canBeEaten;
     }
